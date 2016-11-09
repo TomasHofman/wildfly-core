@@ -56,6 +56,7 @@ public class OperationRequestState extends DefaultParsingState {
                     handler.handle(ctx);
                 }
             }});
+//        enterState(' ', new WhitespaceState(nodeState));
         enterState(':', addrOpSep);
         enterState('(', propList);
         enterState('{', headerList);
@@ -73,4 +74,20 @@ public class OperationRequestState extends DefaultParsingState {
             }});
         setIgnoreWhitespaces(true);
     }
+
+    /*private static class WhitespaceState extends DefaultParsingState {
+        public WhitespaceState(NodeState nodeState) {
+            super("WS");
+            setDefaultHandler(ctx -> {
+                if(!Character.isWhitespace(ctx.getCharacter())) {
+                    ctx.enterState(nodeState);
+                }
+            });
+            setReturnHandler(ParsingContext::leaveState);
+        }
+        @Override
+        public boolean updateValueIndex() {
+            return true;
+        }
+    }*/
 }

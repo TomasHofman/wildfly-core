@@ -171,7 +171,9 @@ public class ParserUtil {
                     handler.setFormat(OperationFormat.INSTANCE);
                 } else if (HeaderListState.ID.equals(id)) {
                     handler.headerListStart(ctx.getLocation());
-                }
+                } /*else if (QuotesState.ID.equals(id)) {
+                    bufferStartIndex = ctx.getLocation() + 1;
+                }*/
             }
 
             @Override
