@@ -26,7 +26,6 @@ import static org.wildfly.extension.elytron.RegexAttributeDefinitions.PATTERN;
 import java.security.Principal;
 import java.util.regex.Pattern;
 
-import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -93,7 +92,7 @@ class PrincipalTransformerDefinitions {
 
     static ResourceDefinition getConstantPrincipalTransformerDefinition() {
         final AttributeDefinition[] attributes = new AttributeDefinition[] { CONSTANT };
-        AbstractAddStepHandler add = new TrivialAddHandler<PrincipalTransformer>(PrincipalTransformer.class, attributes, PRINCIPAL_TRANSFORMER_RUNTIME_CAPABILITY) {
+        TrivialAddHandler add = new TrivialAddHandler<PrincipalTransformer>(PrincipalTransformer.class, attributes, PRINCIPAL_TRANSFORMER_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<PrincipalTransformer> getValueSupplier(ServiceBuilder<PrincipalTransformer> serviceBuilder,
@@ -109,7 +108,7 @@ class PrincipalTransformerDefinitions {
 
     static ResourceDefinition getRegexPrincipalTransformerDefinition() {
         final AttributeDefinition[] attributes = new AttributeDefinition[] { PATTERN, REPLACEMENT, REPLACE_ALL };
-        AbstractAddStepHandler add = new TrivialAddHandler<PrincipalTransformer>(PrincipalTransformer.class, attributes, PRINCIPAL_TRANSFORMER_RUNTIME_CAPABILITY) {
+        TrivialAddHandler add = new TrivialAddHandler<PrincipalTransformer>(PrincipalTransformer.class, attributes, PRINCIPAL_TRANSFORMER_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<PrincipalTransformer> getValueSupplier(ServiceBuilder<PrincipalTransformer> serviceBuilder,
@@ -128,7 +127,7 @@ class PrincipalTransformerDefinitions {
 
     static ResourceDefinition getRegexValidatingPrincipalTransformerDefinition() {
         final AttributeDefinition[] attributes = new AttributeDefinition[] { PATTERN, MATCH };
-        AbstractAddStepHandler add = new TrivialAddHandler<PrincipalTransformer>(PrincipalTransformer.class, attributes, PRINCIPAL_TRANSFORMER_RUNTIME_CAPABILITY) {
+        TrivialAddHandler add = new TrivialAddHandler<PrincipalTransformer>(PrincipalTransformer.class, attributes, PRINCIPAL_TRANSFORMER_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<PrincipalTransformer> getValueSupplier(ServiceBuilder<PrincipalTransformer> serviceBuilder,

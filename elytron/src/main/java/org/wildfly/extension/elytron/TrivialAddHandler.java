@@ -60,8 +60,7 @@ abstract class TrivialAddHandler<T> extends BaseAddHandler {
         this.initialMode = checkNotNullParam("initialMode", initialMode);
     }
 
-    @Override
-    protected final void performRuntime(OperationContext context, ModelNode operation, Resource resource)
+    final void installService(OperationContext context, Resource resource)
             throws OperationFailedException {
         String address = context.getCurrentAddressValue();
         ServiceName mainName = runtimeCapabilities[0].fromBaseCapability(address).getCapabilityServiceName();
@@ -79,6 +78,12 @@ abstract class TrivialAddHandler<T> extends BaseAddHandler {
         installedForResource(commonDependencies(serviceBuilder, dependOnProperties(), dependOnProviderRegistration())
                 .setInitialMode(initialMode)
                 .install(), resource);
+    }
+
+    @Override
+    protected final void performRuntime(OperationContext context, ModelNode operation, Resource resource)
+            throws OperationFailedException {
+        installService(context, resource);
     }
 
     protected boolean dependOnProperties() {

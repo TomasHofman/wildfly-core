@@ -17,8 +17,9 @@
  */
 package org.wildfly.extension.elytron;
 
-import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
+import org.jboss.as.controller.OperationContext;
+import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.ResourceDefinition;
@@ -27,6 +28,7 @@ import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.descriptions.ResourceDescriptionResolver;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
+import org.jboss.dmr.ModelNode;
 import org.jboss.msc.service.ServiceName;
 
 /**
@@ -39,8 +41,9 @@ class TrivialResourceDefinition extends SimpleResourceDefinition {
     private final String pathKey;
     private final RuntimeCapability<?> firstCapability;
     private final AttributeDefinition[] attributes;
+    private final TrivialAddHandler addHandler;
 
-    TrivialResourceDefinition(String pathKey, ResourceDescriptionResolver resourceDescriptionResolver, AbstractAddStepHandler add, AttributeDefinition[] attributes, RuntimeCapability<?> ... runtimeCapabilities) {
+    TrivialResourceDefinition(String pathKey, ResourceDescriptionResolver resourceDescriptionResolver, TrivialAddHandler add, AttributeDefinition[] attributes, RuntimeCapability<?> ... runtimeCapabilities) {
         super(new Parameters(PathElement.pathElement(pathKey),
                 resourceDescriptionResolver)
             .setAddHandler(add)
@@ -52,9 +55,10 @@ class TrivialResourceDefinition extends SimpleResourceDefinition {
         this.pathKey = pathKey;
         this.firstCapability = runtimeCapabilities[0];
         this.attributes = attributes;
+        this.addHandler = add;
     }
 
-    TrivialResourceDefinition(String pathKey, AbstractAddStepHandler add, AttributeDefinition[] attributes, RuntimeCapability<?> ... runtimeCapabilities) {
+    TrivialResourceDefinition(String pathKey, TrivialAddHandler add, AttributeDefinition[] attributes, RuntimeCapability<?> ... runtimeCapabilities) {
         this(pathKey, ElytronExtension.getResourceDescriptionResolver(pathKey), add, attributes, runtimeCapabilities);
     }
 
@@ -77,6 +81,11 @@ class TrivialResourceDefinition extends SimpleResourceDefinition {
         @Override
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
             return firstCapability.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName();
+        }
+
+        @Override
+        protected void recreateParentService(OperationContext context, PathAddress parentAddress, ModelNode parentModel) throws OperationFailedException {
+            addHandler.installService(context, context.readResource(PathAddress.EMPTY_ADDRESS));
         }
     }
 

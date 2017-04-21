@@ -49,7 +49,6 @@ import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.function.Supplier;
 
-import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.ListAttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -119,7 +118,7 @@ class ProviderDefinitions {
 
     static ResourceDefinition getProviderLoaderDefinition() {
         AttributeDefinition[] attributes = new AttributeDefinition[] { MODULE, CLASS_NAMES, PATH, RELATIVE_TO, ARGUMENT, CONFIGURATION };
-        AbstractAddStepHandler add = new TrivialAddHandler<Provider[]>(Provider[].class, attributes, PROVIDERS_RUNTIME_CAPABILITY) {
+        TrivialAddHandler add = new TrivialAddHandler<Provider[]>(Provider[].class, attributes, PROVIDERS_RUNTIME_CAPABILITY) {
 
             @Override
             protected boolean dependOnProviderRegistration() {

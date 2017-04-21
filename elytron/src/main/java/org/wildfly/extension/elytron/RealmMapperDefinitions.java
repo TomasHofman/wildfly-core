@@ -116,7 +116,7 @@ class RealmMapperDefinitions {
     static final AttributeDefinition[] CONSTANT_REALM_MAPPER_ATTRIBUTES = new AttributeDefinition[] { REALM_NAME };
 
     static ResourceDefinition getConstantRealmMapper() {
-        AbstractAddStepHandler add = new TrivialAddHandler<RealmMapper>(RealmMapper.class, CONSTANT_REALM_MAPPER_ATTRIBUTES, REALM_MAPPER_RUNTIME_CAPABILITY) {
+        TrivialAddHandler add = new TrivialAddHandler<RealmMapper>(RealmMapper.class, CONSTANT_REALM_MAPPER_ATTRIBUTES, REALM_MAPPER_RUNTIME_CAPABILITY) {
 
             @Override
             protected ValueSupplier<RealmMapper> getValueSupplier(ServiceBuilder<RealmMapper> serviceBuilder,

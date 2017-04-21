@@ -21,7 +21,6 @@ import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_CAPABILI
 import static org.wildfly.extension.elytron.Capabilities.SECURITY_REALM_RUNTIME_CAPABILITY;
 import static org.wildfly.extension.elytron.ElytronDefinition.commonDependencies;
 
-import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -48,7 +47,7 @@ import org.wildfly.security.auth.realm.AggregateSecurityRealm;
 import org.wildfly.security.auth.server.SecurityRealm;
 
 /**
- * A {@link ResourceDefinition} for a {@link SecruityRealm} which is an aggregation of two other realm instances.
+ * A {@link ResourceDefinition} for a {@link SecurityRealm} which is an aggregation of two other realm instances.
  *
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
@@ -70,7 +69,7 @@ class AggregateRealmDefinition extends SimpleResourceDefinition {
 
     static final AttributeDefinition[] ATTRIBUTES = new AttributeDefinition[] { AUTHENTICATION_REALM, AUTHORIZATION_REALM };
 
-    private static final AbstractAddStepHandler ADD = new RealmAddHandler();
+    private static final RealmAddHandler ADD = new RealmAddHandler();
     private static final OperationStepHandler REMOVE = new TrivialCapabilityServiceRemoveHandler(ADD, SECURITY_REALM_RUNTIME_CAPABILITY);
 
     AggregateRealmDefinition() {
@@ -84,7 +83,7 @@ class AggregateRealmDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        WriteAttributeHandler write = new WriteAttributeHandler(ElytronDescriptionConstants.AGGREGATE_REALM);
+        WriteAttributeHandler write = new WriteAttributeHandler(ElytronDescriptionConstants.AGGREGATE_REALM, ADD);
         for (AttributeDefinition current : ATTRIBUTES) {
             resourceRegistration.registerReadWriteAttribute(current, null, write);
         }
@@ -98,6 +97,11 @@ class AggregateRealmDefinition extends SimpleResourceDefinition {
 
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
+                throws OperationFailedException {
+            installService(context, model);
+        }
+
+        void installService(OperationContext context, ModelNode model)
                 throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
             RuntimeCapability<Void> runtimeCapability = SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(context.getCurrentAddressValue());
@@ -132,13 +136,21 @@ class AggregateRealmDefinition extends SimpleResourceDefinition {
 
     private static class WriteAttributeHandler extends ElytronRestartParentWriteAttributeHandler {
 
-        WriteAttributeHandler(final String key) {
+        private final RealmAddHandler addHandler;
+
+        WriteAttributeHandler(final String key, RealmAddHandler addHandler) {
             super(key, ATTRIBUTES);
+            this.addHandler = addHandler;
         }
 
         @Override
         protected ServiceName getParentServiceName(PathAddress pathAddress) {
             return SECURITY_REALM_RUNTIME_CAPABILITY.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(SecurityRealm.class);
+        }
+
+        @Override
+        protected void recreateParentService(OperationContext context, PathAddress parentAddress, ModelNode parentModel) throws OperationFailedException {
+            addHandler.installService(context, parentModel);
         }
     }
 }

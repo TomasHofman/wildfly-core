@@ -90,9 +90,9 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
             .setCapabilityReference(capabilityName, capabilityName, true)
             .build();
 
-        AbstractAddStepHandler add = new AggregateComponentAddHandler<T>(aggregationType, aggregator, aggregateReferences, runtimeCapability, dependOnProviderRegistration);
+        AggregateComponentAddHandler add = new AggregateComponentAddHandler<T>(aggregationType, aggregator, aggregateReferences, runtimeCapability, dependOnProviderRegistration);
         OperationStepHandler remove = new TrivialCapabilityServiceRemoveHandler(add, runtimeCapability);
-        OperationStepHandler write = new WriteAttributeHandler<T>(aggregationType, runtimeCapability, componentName, aggregateReferences);
+        OperationStepHandler write = new WriteAttributeHandler<T>(aggregationType, runtimeCapability, componentName, aggregateReferences, add);
 
         return new AggregateComponentDefinition<T>(aggregationType, componentName, add, remove, aggregateReferences, write, runtimeCapability);
     }
@@ -119,6 +119,11 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model)
                 throws OperationFailedException {
+            installService(context, model);
+        }
+
+        void installService(OperationContext context, ModelNode model)
+                throws OperationFailedException {
             ServiceTarget serviceTarget = context.getServiceTarget();
             RuntimeCapability<?> instanceRuntimeCapability = runtimeCapability.fromBaseCapability(context.getCurrentAddressValue());
             ServiceName componentName = instanceRuntimeCapability.getCapabilityServiceName(aggregationType);
@@ -138,8 +143,8 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
             }
 
             commonDependencies(serviceBuilder, true, dependOnProviderRegistration)
-                .setInitialMode(Mode.LAZY)
-                .install();
+                    .setInitialMode(Mode.LAZY)
+                    .install();
         }
 
     }
@@ -148,12 +153,14 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
 
         private final Class<T> serviceType;
         private final RuntimeCapability<?> runtimeCapability;
+        private final AggregateComponentAddHandler addHandler;
 
 
-        WriteAttributeHandler(Class<T> serviceType, RuntimeCapability<?> runtimeCapability, String pathKey, AttributeDefinition attribute) {
+        WriteAttributeHandler(Class<T> serviceType, RuntimeCapability<?> runtimeCapability, String pathKey, AttributeDefinition attribute, AggregateComponentAddHandler addHandler) {
             super(pathKey, attribute);
             this.serviceType = serviceType;
             this.runtimeCapability = runtimeCapability;
+            this.addHandler = addHandler;
         }
 
         @Override
@@ -161,6 +168,10 @@ class AggregateComponentDefinition<T> extends SimpleResourceDefinition {
             return runtimeCapability.fromBaseCapability(pathAddress.getLastElement().getValue()).getCapabilityServiceName(serviceType);
         }
 
+        @Override
+        protected void recreateParentService(OperationContext context, PathAddress parentAddress, ModelNode parentModel) throws OperationFailedException {
+            addHandler.installService(context, parentModel);
+        }
     }
 
 }
