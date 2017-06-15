@@ -37,6 +37,7 @@ import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 import org.jboss.as.controller.PathAddress;
+import org.jboss.as.controller.client.Operation;
 import org.jboss.as.controller.client.helpers.Operations.CompositeOperationBuilder;
 import org.jboss.as.controller.services.path.PathResourceDefinition;
 import org.jboss.as.subsystem.test.KernelServices;
@@ -273,6 +274,37 @@ public class HandlerOperationsTestCase extends AbstractOperationsTestCase {
                 .build().getOperation();
         executeOperation(kernelServices, op);
 
+    }
+
+    @Test
+    public void testRewritePatternInCompositeOp() throws Exception {
+        final KernelServices kernelServices = boot();
+
+        final ModelNode address = createConsoleHandlerAddress(null, "test-handler").toModelNode();
+
+        // Add the handler
+        final ModelNode addOp = SubsystemOperations.createAddOperation(address);
+        executeOperation(kernelServices, addOp);
+
+        // Add a pattern-formatter
+        addPatternFormatter(kernelServices, LoggingProfileOperations.getLoggingProfileName(PathAddress.pathAddress(address)), "PATTERN");
+
+        // Undefine FORMATTER and set NAMED_FORMATTER in composite operation
+        Operation composite = CompositeOperationBuilder.create()
+                .addStep(SubsystemOperations.createUndefineAttributeOperation(address, AbstractHandlerDefinition.FORMATTER))
+                .addStep(SubsystemOperations.createWriteAttributeOperation(address, AbstractHandlerDefinition.NAMED_FORMATTER, "PATTERN"))
+                .build();
+        executeOperation(kernelServices, composite.getOperation());
+
+        // Check resulting attribute values
+        ModelNode readOp = SubsystemOperations.createReadAttributeOperation(address, AbstractHandlerDefinition.FORMATTER);
+        ModelNode result = executeOperation(kernelServices, readOp);
+        System.out.println(result);
+        assertEquals(SubsystemOperations.readResult(result), AbstractHandlerDefinition.FORMATTER.getDefaultValue());
+
+        readOp = SubsystemOperations.createReadAttributeOperation(address, AbstractHandlerDefinition.NAMED_FORMATTER);
+        result = executeOperation(kernelServices, readOp);
+        assertEquals("PATTERN", SubsystemOperations.readResultAsString(result));
     }
 
     private void testAsyncHandler(final KernelServices kernelServices, final String profileName) throws Exception {

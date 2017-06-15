@@ -669,7 +669,7 @@ final class HandlerOperations {
                 configuration.setFormatterName(resolvedValue);
                 // Check the current formatter name, if it's the same name as the handler, remove the old formatter
                 if (!formatterName.equals(resolvedValue) && logContextConfiguration.getFormatterNames().contains(formatterName)) {
-                    logContextConfiguration.removeFormatterConfiguration(formatterName);
+//                    logContextConfiguration.removeFormatterConfiguration(formatterName); // don't
                 }
             } else {
                 // If the current formatter name already equals the name defined in the configuration, there is no need to process
